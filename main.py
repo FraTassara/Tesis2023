@@ -1,22 +1,22 @@
-import os
-import subprocess
-
-def runExperiment(dataset_name):
-    """Executes random search and final training for a given dataset."""
-    print(f"\n*** Running experiment for {dataset_name} ***")
-    
-    # Run hyperparameter search
-    print("Running hyperparameter search...")
-    subprocess.run(["python", f"experiments/{dataset_name}/random_search.py"])
-    
-    # Run final training
-    print("Running final training with optimal parameters...")
-    subprocess.run(["python", f"experiments/{dataset_name}/train.py"])
+from data.loader import DataLoader
+from training.tuner import run_search
+from models.cvae import CVAEBuilder
 
 if __name__ == "__main__":
-    # List of datasets
-    datasets = ["dataset_1", "dataset_2"]
+    # Cargar datos
+    loader = DataLoader('lc_database.csv')
+    X, y, scaler, feature_names = loader.load_and_preprocess()
     
-    # Execute experiments for each dataset
-    for dataset in datasets:
-        runExperiment(dataset)
+    # Búsqueda de hiperparámetros
+    n_x = X.shape[1]
+    n_y = y.shape[1]
+    kgs = run_search(X, y, n_x, n_y)
+    
+    # Mejor modelo
+    best_model = kgs.best_model
+    best_params = kgs.best_params
+    
+    # Generar datos sintéticos (ejemplo)
+    builder = CVAEBuilder(n_x, n_y)
+    _, mu, l_sigma = builder.build_model(best_params)
+    # ... (agregar lógica de generación)
